@@ -1,0 +1,71 @@
+#include <Wire.h>
+#include <Keypad.h>
+#include <MechaQMC5883.h>
+
+MechaQMC5883 qmc;
+
+const byte ROWS = 4; 
+const byte COLS = 3; 
+char hexaKeys[ROWS][COLS] = {
+  {'1','2','3'},
+  {'4','5','6'},
+  {'7','8','9'},
+  {'*','0','#'}
+};
+byte rowPins[ROWS] = {4, 5, 6, 7}; 
+byte colPins[COLS] = {8, 9, 10}; 
+
+Keypad customKeypad = Keypad( makeKeymap(hexaKeys), rowPins, colPins, ROWS, COLS); 
+
+int nano1 = 0;
+int nano2 = 1;
+int nano3 = 2;
+
+int c = 0;
+
+
+void setup(){
+  Wire.begin(nano1);
+//  Wire.onReceive(receiveEvent);
+  Serial.begin(9600);
+  qmc.init();
+}
+  
+void loop(){
+  int X, Y, Z;
+  int azimuth;
+  int A1 = 0;
+  qmc.read(&X, &Y, &Z,&azimuth);
+  char customKey = customKeypad.getKey();
+
+      qmc.read(&X, &Y, &Z,&azimuth);
+      
+  int Comm = 0.7083*azimuth;
+  int QD = Comm/4; 
+    Serial.print(azimuth);
+    Serial.print(" ");
+    Serial.println(QD);
+    delay(100);
+    
+  if (customKey){
+    Wire.beginTransmission(nano2);
+    Wire.write(0);
+    Wire.endTransmission();
+    delay(100);
+  }
+  if (customKey == '#'){
+    Serial.println("#");
+    Wire.beginTransmission(nano2);
+    Wire.write(QD);
+    Wire.endTransmission();
+    delay(100);
+  }
+    if (customKey == '1'){
+      Serial.println("1");
+    Wire.beginTransmission(nano2);
+    Wire.write(QD+64);
+    Wire.endTransmission();
+    delay(100);
+  }
+  
+}
